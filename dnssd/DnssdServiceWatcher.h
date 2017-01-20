@@ -15,9 +15,8 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <condition_variable>
-#include <mutex>
-#include <vector>
+#include <functional>
+#include <map>
 
 #include "dnssd.h"
 
@@ -26,12 +25,29 @@ namespace dnssd_uwp
     std::string PlatformStringToString(Platform::String^ s);
     ref class DnssdServiceWatcher;
 
-
     // C++ dsssd service changed callback
     typedef std::function<void(DnssdServiceWatcher^ watcher, DnssdServiceUpdateType update, DnssdServiceInfoPtr info)> DnssdServiceChangedCallbackType;
 
     // WinRT Delegate
     delegate void DnssdServiceUpdateHandler(DnssdServiceWatcher^ sender, DnssdServiceUpdateType update, DnssdServiceInfoPtr info);
+
+    ref class DnssdServiceInstance sealed
+    {
+    public:
+        DnssdServiceInstance()
+        {
+            mChanged = false;
+            mType = DnssdServiceUpdateType::ServiceAdded;
+        }
+
+    internal:
+        Platform::String^ mHost;
+        Platform::String^ mPort;
+        Platform::String^ mInstanceName;
+        Platform::String^ mId;
+        DnssdServiceUpdateType mType;
+        bool mChanged;
+    };
 
     ref class DnssdServiceWatcher
     {
@@ -45,8 +61,7 @@ namespace dnssd_uwp
             mDnssdServiceChangedCallback = nullptr;
         };
 
-        event DnssdServiceUpdateHandler^ mPortUpdateEventHander;
-        void OnDnssdServiceUpdated(DnssdServiceUpdateType update, DnssdServiceInfoPtr info);
+        //event DnssdServiceUpdateHandler^ mPortUpdateEventHander;
         
         // needs to be internal as DnssdServiceChangedCallbackType is not a WinRT type
         void SetDnssdServiceChangedCallback(const DnssdServiceChangedCallback callback) {
@@ -62,11 +77,14 @@ namespace dnssd_uwp
         void OnServiceUpdated(Windows::Devices::Enumeration::DeviceWatcher^ sender, Windows::Devices::Enumeration::DeviceInformationUpdate^ args);
         void OnServiceEnumerationCompleted(Windows::Devices::Enumeration::DeviceWatcher^ sender, Platform::Object^ args);
         void OnServiceEnumerationStopped(Windows::Devices::Enumeration::DeviceWatcher^ sender, Platform::Object^ args);
-        void SendDnssdServiceUpdate(DnssdServiceUpdateType type, Windows::Foundation::Collections::IMapView<Platform::String^, Platform::Object^>^ props, Platform::String^ serviceId);
+        void UpdateDnssdService(DnssdServiceUpdateType type, Windows::Foundation::Collections::IMapView<Platform::String^, Platform::Object^>^ props, Platform::String^ serviceId);
+        void OnDnssdServiceUpdated(DnssdServiceInstance^ info);
 
         Windows::Devices::Enumeration::DeviceWatcher^ mServiceWatcher;
 
         DnssdServiceChangedCallback mDnssdServiceChangedCallback;
+
+        std::map<Platform::String^, DnssdServiceInstance^> mServices;
     };
 
 

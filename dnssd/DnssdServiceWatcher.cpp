@@ -105,37 +105,87 @@ namespace dnssd_uwp
     }
 
 
-    void DnssdServiceWatcher::SendDnssdServiceUpdate(DnssdServiceUpdateType type, Windows::Foundation::Collections::IMapView<Platform::String^, Platform::Object^>^ props, Platform::String^ serviceId)
+    void DnssdServiceWatcher::UpdateDnssdService(DnssdServiceUpdateType type, Windows::Foundation::Collections::IMapView<Platform::String^, Platform::Object^>^ props, Platform::String^ serviceId)
     {
-        DnssdServiceInfo info;
-
         auto box = safe_cast<Platform::IBoxArray<Platform::String^>^>(props->Lookup("System.Devices.IpAddress"));
-        std::string host = PlatformStringToString(box->Value->get(0));
-        std::string  port = PlatformStringToString(props->Lookup("System.Devices.Dnssd.PortNumber")->ToString());
-        std::string instanceName = PlatformStringToString(props->Lookup("System.Devices.Dnssd.InstanceName")->ToString());
-        std::string id = PlatformStringToString(serviceId);
+        Platform::String^ host = box->Value->get(0);
+        Platform::String^ port = props->Lookup("System.Devices.Dnssd.PortNumber")->ToString();
+        Platform::String^ name = props->Lookup("System.Devices.Dnssd.InstanceName")->ToString();
 
-        info.id = id.c_str();
-        info.host = host.c_str();
-        info.port = port.c_str();
-        info.instanceName = instanceName.c_str();
+        auto it = mServices.find(serviceId);
+        if (it != mServices.end()) // service was already found. Update the info and report change if nessary
+        {
+            auto i = it->second;
+            if (i->mHost != host)
+            {
+                i->mHost = host;
+                i->mChanged = true;
+            }
+            if (i->mPort != port)
+            {
+                i->mPort = port;
+                i->mChanged = true;
+            }
+            if (i->mInstanceName != name)
+            {
+                i->mInstanceName = name;
+                i->mChanged = true;
+            }
+            i->mType = DnssdServiceUpdateType::ServiceUpdated;
 
-        OnDnssdServiceUpdated(type, &info);
+            if (i->mChanged)
+            {
+                OnDnssdServiceUpdated(i);
+            }
+        }
+        else // add it to the service map
+        {
+            DnssdServiceInstance^ info = ref new DnssdServiceInstance;
+            info->mId = serviceId;
+            info->mHost = host;
+            info->mPort = port;
+            info->mInstanceName = name;
+            info->mType = DnssdServiceUpdateType::ServiceAdded;
+            mServices[serviceId] = info;
+
+            OnDnssdServiceUpdated(info);
+        }
+    }
+
+    void DnssdServiceWatcher::OnDnssdServiceUpdated(DnssdServiceInstance^ info)
+    {
+        DnssdServiceWatcherWrapper wrapper(this);
+        DnssdServiceInfo serviceInfo;
+
+        std::string host = PlatformStringToString(info->mHost);
+        std::string  port = PlatformStringToString(info->mPort);
+        std::string instanceName = PlatformStringToString(info->mInstanceName);
+        std::string id = PlatformStringToString(info->mId);
+
+        serviceInfo.host = host.c_str();
+        serviceInfo.port = port.c_str();
+        serviceInfo.id = id.c_str();
+        serviceInfo.instanceName = instanceName.c_str();
+
+        if (mDnssdServiceChangedCallback != nullptr)
+        {
+            mDnssdServiceChangedCallback(&wrapper, info->mType, &serviceInfo);
+        }
     }
 
     void DnssdServiceWatcher::OnServiceAdded(DeviceWatcher^ sender, DeviceInformation^ args)
     {
-        SendDnssdServiceUpdate(DnssdServiceUpdateType::ServiceAdded, args->Properties, args->Id);
+        UpdateDnssdService(DnssdServiceUpdateType::ServiceAdded, args->Properties, args->Id);
     }
 
     void DnssdServiceWatcher::OnServiceUpdated(DeviceWatcher^ sender, DeviceInformationUpdate^ args)
     {
-        SendDnssdServiceUpdate(DnssdServiceUpdateType::ServiceUpdated, args->Properties, args->Id);
+        UpdateDnssdService(DnssdServiceUpdateType::ServiceUpdated, args->Properties, args->Id);
     }
 
     void DnssdServiceWatcher::OnServiceRemoved(DeviceWatcher^ sender, DeviceInformationUpdate^ args)
     {
-        SendDnssdServiceUpdate(DnssdServiceUpdateType::ServiceUpdated, args->Properties, args->Id);
+        UpdateDnssdService(DnssdServiceUpdateType::ServiceUpdated, args->Properties, args->Id);
     }
 
     void DnssdServiceWatcher::OnServiceEnumerationCompleted(DeviceWatcher^ sender, Platform::Object^ args)
@@ -145,21 +195,42 @@ namespace dnssd_uwp
 
     void DnssdServiceWatcher::OnServiceEnumerationStopped(Windows::Devices::Enumeration::DeviceWatcher^ sender, Platform::Object^ args)
     {
+        std::vector<Platform::String^> removedServices;
+
+        // iterate through the services list and remove any service that is marked for removal
+        for (auto it = mServices.begin(); it != mServices.end(); ++it)
+        {
+            auto service = it->second;
+            if (service->mType == DnssdServiceUpdateType::ServiceRemoved)
+            {
+                // report to the client the removed service
+                OnDnssdServiceUpdated(service);
+
+                removedServices.push_back(it->first);
+            }
+            else // prepare the service for the next search
+            {
+                // for each scan we mark each service as removed. 
+                // If the scan finds the service again we will update its state accordingly
+                service->mType = DnssdServiceUpdateType::ServiceRemoved;
+                service->mChanged = false;
+            }
+        }
+
+        // remove stale services from the services map
+        std::for_each(begin(removedServices), end(removedServices), [&](Platform::String^ id)
+        {
+            auto service = mServices.find(id);
+            if (service != mServices.end())
+            {
+                mServices.erase(service);
+            }
+        });
+
+        // restart the service scan
         mServiceWatcher->Start();
     }
 
-
-    void DnssdServiceWatcher::OnDnssdServiceUpdated(DnssdServiceUpdateType update, DnssdServiceInfoPtr info)
-    {
-        DnssdServiceWatcherWrapper wrapper(this);
-
-        if (mDnssdServiceChangedCallback != nullptr)
-        {
-            mDnssdServiceChangedCallback(&wrapper, update, info);
-        }
-
-        mPortUpdateEventHander(this, update, info);
-    }
 }
 
 

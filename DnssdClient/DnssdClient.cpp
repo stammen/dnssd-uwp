@@ -50,10 +50,6 @@ void dnssdServiceChangedCallback(const DnssdServiceWatcherPtr serviceWatcher, Dn
     case ServiceRemoved:
         cout << "*** dnssd service removed ***" << endl;
         break;
-
-    case EnumerationComplete:
-        cout << "*** dnssd service enumeration complete ***" << endl;
-        break;
     }
 
     if (info != nullptr)

@@ -20,7 +20,7 @@
 
 namespace dnssd_uwp
 {
-    enum DnssdServiceUpdateType { ServiceAdded, ServiceUpdated, ServiceRemoved, EnumerationComplete };
+    enum DnssdServiceUpdateType { ServiceAdded, ServiceUpdated, ServiceRemoved };
 
     enum DnssdErrorType {
         DNSSD_NO_ERROR = 0,                         //no error
