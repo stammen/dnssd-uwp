@@ -45,18 +45,17 @@ namespace dnssd_uwp
     }
 
     DnssdServiceWatcher::DnssdServiceWatcher(DnssdServiceChangedCallback callback)
-        : mPortEnumerationComplete(false)
-        , mDnssdServiceChangedCallback(callback)
+        : mDnssdServiceChangedCallback(callback)
     {
  
     }
 
     DnssdServiceWatcher::~DnssdServiceWatcher()
     {
-        if (mPortWatcher)
+        if (mServiceWatcher)
         {
-            mPortWatcher->Stop();
-            mPortWatcher = nullptr;
+            mServiceWatcher->Stop();
+            mServiceWatcher = nullptr;
         }
     }
 
@@ -79,24 +78,18 @@ namespace dnssd_uwp
             aqsQueryString = L"System.Devices.AepService.ProtocolId:={4526e8c1-8aac-4153-9b16-55e86ada0e54} AND " +
                 "System.Devices.Dnssd.Domain:=\"local\" AND System.Devices.Dnssd.ServiceName:=\"_daap._tcp\"";
 
-            mPortWatcher = DeviceInformation::CreateWatcher(aqsQueryString, propertyKeys, DeviceInformationKind::AssociationEndpointService);
+            mServiceWatcher = DeviceInformation::CreateWatcher(aqsQueryString, propertyKeys, DeviceInformationKind::AssociationEndpointService);
 
             // wire up event handlers
-            mPortWatcher->Added += ref new TypedEventHandler<DeviceWatcher ^, DeviceInformation ^>(this, &DnssdServiceWatcher::OnServiceAdded);
-            mPortWatcher->Removed += ref new TypedEventHandler<DeviceWatcher ^, DeviceInformationUpdate ^>(this, &DnssdServiceWatcher::OnServiceRemoved);
-            mPortWatcher->Updated += ref new TypedEventHandler<DeviceWatcher ^, DeviceInformationUpdate ^>(this, &DnssdServiceWatcher::OnServiceUpdated);
-            mPortWatcher->EnumerationCompleted += ref new Windows::Foundation::TypedEventHandler<DeviceWatcher ^, Platform::Object ^>(this, &DnssdServiceWatcher::OnServiceEnumerationCompleted);
+            mServiceWatcher->Added += ref new TypedEventHandler<DeviceWatcher ^, DeviceInformation ^>(this, &DnssdServiceWatcher::OnServiceAdded);
+            mServiceWatcher->Removed += ref new TypedEventHandler<DeviceWatcher ^, DeviceInformationUpdate ^>(this, &DnssdServiceWatcher::OnServiceRemoved);
+            mServiceWatcher->Updated += ref new TypedEventHandler<DeviceWatcher ^, DeviceInformationUpdate ^>(this, &DnssdServiceWatcher::OnServiceUpdated);
+            mServiceWatcher->EnumerationCompleted += ref new Windows::Foundation::TypedEventHandler<DeviceWatcher ^, Platform::Object ^>(this, &DnssdServiceWatcher::OnServiceEnumerationCompleted);
+            mServiceWatcher->Stopped += ref new Windows::Foundation::TypedEventHandler<DeviceWatcher ^, Platform::Object ^>(this, &DnssdServiceWatcher::OnServiceEnumerationStopped);
 
-            // start enumeration
-            mPortEnumerationComplete = false;
-            mPortWatcher->Start();
-            auto status = mPortWatcher->Status;
-
-            // wait until port enumeration is complete
-           // WaitForEnumeration();
-
-            // report enumerated ports
-            //OnDnssdServiceUpdated(DnssdServiceUpdateType::EnumerationComplete);
+            // start watching for dnssd services
+            mServiceWatcher->Start();
+            auto status = mServiceWatcher->Status;
         }));
 
         try
@@ -111,15 +104,6 @@ namespace dnssd_uwp
         }
     }
 
-    // blocks if port enumeration is not complete
-    void DnssdServiceWatcher::WaitForEnumeration()
-    {
-        while (!mPortEnumerationComplete)
-        {
-            std::unique_lock<std::mutex> lock(mEnumerationMutex);
-            mSleepCondition.wait(lock);
-        }
-    }
 
     void DnssdServiceWatcher::SendDnssdServiceUpdate(DnssdServiceUpdateType type, Windows::Foundation::Collections::IMapView<Platform::String^, Platform::Object^>^ props, Platform::String^ serviceId)
     {
@@ -137,7 +121,6 @@ namespace dnssd_uwp
         info.instanceName = instanceName.c_str();
 
         OnDnssdServiceUpdated(type, &info);
-
     }
 
     void DnssdServiceWatcher::OnServiceAdded(DeviceWatcher^ sender, DeviceInformation^ args)
@@ -157,10 +140,14 @@ namespace dnssd_uwp
 
     void DnssdServiceWatcher::OnServiceEnumerationCompleted(DeviceWatcher^ sender, Platform::Object^ args)
     {
-        std::unique_lock<std::mutex> locker(mEnumerationMutex);
-        mPortEnumerationComplete = true;
-        mSleepCondition.notify_one();
+        mServiceWatcher->Stop();
     }
+
+    void DnssdServiceWatcher::OnServiceEnumerationStopped(Windows::Devices::Enumeration::DeviceWatcher^ sender, Platform::Object^ args)
+    {
+        mServiceWatcher->Start();
+    }
+
 
     void DnssdServiceWatcher::OnDnssdServiceUpdated(DnssdServiceUpdateType update, DnssdServiceInfoPtr info)
     {

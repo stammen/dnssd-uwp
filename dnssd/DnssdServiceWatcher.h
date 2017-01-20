@@ -61,17 +61,12 @@ namespace dnssd_uwp
         void OnServiceRemoved(Windows::Devices::Enumeration::DeviceWatcher^ sender, Windows::Devices::Enumeration::DeviceInformationUpdate^ args);
         void OnServiceUpdated(Windows::Devices::Enumeration::DeviceWatcher^ sender, Windows::Devices::Enumeration::DeviceInformationUpdate^ args);
         void OnServiceEnumerationCompleted(Windows::Devices::Enumeration::DeviceWatcher^ sender, Platform::Object^ args);
+        void OnServiceEnumerationStopped(Windows::Devices::Enumeration::DeviceWatcher^ sender, Platform::Object^ args);
         void SendDnssdServiceUpdate(DnssdServiceUpdateType type, Windows::Foundation::Collections::IMapView<Platform::String^, Platform::Object^>^ props, Platform::String^ serviceId);
 
-        void WaitForEnumeration();
-
-        Windows::Devices::Enumeration::DeviceWatcher^ mPortWatcher;
-        std::vector<std::unique_ptr<DnssdServiceInfo>> mPortInfo;
-        std::mutex mEnumerationMutex;
-        std::condition_variable mSleepCondition;
+        Windows::Devices::Enumeration::DeviceWatcher^ mServiceWatcher;
 
         DnssdServiceChangedCallback mDnssdServiceChangedCallback;
-        bool mPortEnumerationComplete;
     };
 
 
