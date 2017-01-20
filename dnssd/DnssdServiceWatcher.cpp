@@ -104,7 +104,6 @@ namespace dnssd_uwp
         }
     }
 
-
     void DnssdServiceWatcher::UpdateDnssdService(DnssdServiceUpdateType type, Windows::Foundation::Collections::IMapView<Platform::String^, Platform::Object^>^ props, Platform::String^ serviceId)
     {
         auto box = safe_cast<Platform::IBoxArray<Platform::String^>^>(props->Lookup("System.Devices.IpAddress"));
@@ -113,29 +112,30 @@ namespace dnssd_uwp
         Platform::String^ name = props->Lookup("System.Devices.Dnssd.InstanceName")->ToString();
 
         auto it = mServices.find(serviceId);
-        if (it != mServices.end()) // service was already found. Update the info and report change if nessary
+        if (it != mServices.end()) // service was previously found. Update the info and report change if necessary
         {
-            auto i = it->second;
-            if (i->mHost != host)
+            auto info = it->second;
+            if (info->mHost != host)
             {
-                i->mHost = host;
-                i->mChanged = true;
+                info->mHost = host;
+                info->mChanged = true;
             }
-            if (i->mPort != port)
+            if (info->mPort != port)
             {
-                i->mPort = port;
-                i->mChanged = true;
+                info->mPort = port;
+                info->mChanged = true;
             }
-            if (i->mInstanceName != name)
+            if (info->mInstanceName != name)
             {
-                i->mInstanceName = name;
-                i->mChanged = true;
+                info->mInstanceName = name;
+                info->mChanged = true;
             }
-            i->mType = DnssdServiceUpdateType::ServiceUpdated;
+            info->mType = DnssdServiceUpdateType::ServiceUpdated;
 
-            if (i->mChanged)
+            if (info->mChanged)
             {
-                OnDnssdServiceUpdated(i);
+                // report the updated service
+                OnDnssdServiceUpdated(info);
             }
         }
         else // add it to the service map
@@ -148,6 +148,7 @@ namespace dnssd_uwp
             info->mType = DnssdServiceUpdateType::ServiceAdded;
             mServices[serviceId] = info;
 
+            // report the new service
             OnDnssdServiceUpdated(info);
         }
     }
@@ -157,6 +158,7 @@ namespace dnssd_uwp
         DnssdServiceWatcherWrapper wrapper(this);
         DnssdServiceInfo serviceInfo;
 
+        // convert Platform::Strings to std::strings 
         std::string host = PlatformStringToString(info->mHost);
         std::string  port = PlatformStringToString(info->mPort);
         std::string instanceName = PlatformStringToString(info->mInstanceName);
@@ -190,6 +192,7 @@ namespace dnssd_uwp
 
     void DnssdServiceWatcher::OnServiceEnumerationCompleted(DeviceWatcher^ sender, Platform::Object^ args)
     {
+        // stop the service scanning. Service scanning will be restarted when OnServiceEnumerationStopped event is received
         mServiceWatcher->Stop();
     }
 
@@ -205,7 +208,6 @@ namespace dnssd_uwp
             {
                 // report to the client the removed service
                 OnDnssdServiceUpdated(service);
-
                 removedServices.push_back(it->first);
             }
             else // prepare the service for the next search
