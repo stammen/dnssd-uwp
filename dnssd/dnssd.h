@@ -32,9 +32,7 @@ namespace dnssd_uwp
         DNSSD_UNSPECIFIED_ERROR
     };
 
-    typedef void* DnssdPtr;
     typedef void* DnssdServiceWatcherPtr;
-    typedef void* DnssdInPortPtr;
 
     // dnssd service info
     typedef struct 
@@ -47,18 +45,22 @@ namespace dnssd_uwp
 
     typedef DnssdServiceInfo* DnssdServiceInfoPtr;
 
-    // dnssd service changed callback
+    // dnssd functions
+    typedef DnssdErrorType(__cdecl *DnssdInitializeFunc)();
+    DNSSD_API DnssdErrorType __cdecl dnssd_initialize();
+
+    // dnssd service watcher functions
+
+    // dnssd service watcher changed callback
     typedef void(*DnssdServiceChangedCallback) (const DnssdServiceWatcherPtr portWatcher, DnssdServiceUpdateType update, DnssdServiceInfoPtr info);
 
-    // dnssd service Functions
-    typedef DnssdErrorType(__cdecl *DnssdInitializeFunc)(DnssdServiceChangedCallback callback, DnssdPtr* dnssdPtr);
-    DNSSD_API DnssdErrorType __cdecl dnssd_initialize(DnssdServiceChangedCallback callback, DnssdPtr* dnssdPtr);
- 
-    typedef void(__cdecl *DnssdFreeFunc)(DnssdPtr dnssdPtr);
-    DNSSD_API void __cdecl dnssd_free(DnssdPtr dnssdPtr);
+    // dnssd service watcher create function
+    typedef  DnssdErrorType(__cdecl *DnssdCreateServiceWatcherFunc)(DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr *serviceWatcher);
+    DNSSD_API DnssdErrorType __cdecl dnssd_create_service_watcher(DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr * serviceWatcher);
 
-    typedef const DnssdServiceWatcherPtr(__cdecl *DnssdGetPortWatcherFunc)(DnssdPtr dnssdPtr);
-    DNSSD_API const DnssdServiceWatcherPtr __cdecl dnssd_get_servicewatcher(DnssdPtr dnssdPtr);
+    typedef void(__cdecl *DnssdFreeServiceWatcherFunc)(DnssdServiceWatcherPtr serviceWatcher);
+    DNSSD_API void __cdecl dnssd_free_service_watcher(DnssdServiceWatcherPtr serviceWatcher);
+
 
 };
  

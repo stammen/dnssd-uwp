@@ -17,10 +17,8 @@
 
 namespace dnssd_uwp
 {
-    DnssdErrorType dnssd_initialize(DnssdServiceChangedCallback callback, DnssdPtr* dnssdPtr)
+    DnssdErrorType dnssd_initialize()
     {
-        *dnssdPtr = nullptr;
-
         // Initialize the Windows Runtime.
         static Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
 
@@ -37,35 +35,39 @@ namespace dnssd_uwp
         }
 #endif
 
-        // attempt to initialize the dnssd service watcher
-        Dnssd* d = new Dnssd(callback);
-        DnssdErrorType result = d->Initialize();
-        if(result != DNSSD_NO_ERROR)
+        return DNSSD_NO_ERROR;
+    }
+
+
+    DNSSD_API DnssdErrorType dnssd_create_service_watcher(DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr *serviceWatcher)
+    {
+        DnssdErrorType result = DNSSD_NO_ERROR;
+
+        *serviceWatcher = nullptr;
+
+        auto watcher = ref new DnssdServiceWatcher(callback);
+        result = watcher->Initialize();
+
+        if (result != DNSSD_NO_ERROR)
         {
-            delete d;
-            *dnssdPtr = nullptr;
+            *serviceWatcher = nullptr;
+            watcher = nullptr;
         }
         else
         {
-            *dnssdPtr = (DnssdPtr)d;
+            auto wrapper = new DnssdServiceWatcherWrapper(watcher);
+            *serviceWatcher = (DnssdServiceWatcherPtr)wrapper;
         }
 
         return result;
     }
 
-    void dnssd_free(DnssdPtr dnssdPtr)
+    void dnssd_free_service_watcher(DnssdServiceWatcherPtr serviceWatcher)
     {
-        if (dnssdPtr)
+        if (serviceWatcher)
         {
-            delete dnssdPtr;
+            delete serviceWatcher;
         }
     }
-
-    const DnssdServiceWatcherPtr dnssd_get_servicewatcher(DnssdPtr dnssdPtr)
-    {
-        Dnssd* d = (Dnssd*)dnssdPtr;
-        return d->GetServiceWatcherWrapper();
-    }
-
 }
 

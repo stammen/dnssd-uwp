@@ -28,9 +28,9 @@ using namespace dnssd_uwp;
 CRITICAL_SECTION gCriticalSection;
 
 // Dnssd DLL function pointers
-DnssdInitializeFunc     gDnssdInitFunc = nullptr;
-DnssdFreeFunc           gDnssdFreeFunc = nullptr;
-DnssdGetPortWatcherFunc gDnssdGetServiceWatcher = nullptr;
+DnssdInitializeFunc             gDnssdInitFunc = nullptr;
+DnssdCreateServiceWatcherFunc   gDnssdCreateServiceWatcherFunc = nullptr;
+DnssdFreeServiceWatcherFunc     gDnssdFreeServiceWatcherFunc = nullptr;
 
 void dnssdServiceChangedCallback(const DnssdServiceWatcherPtr serviceWatcher, DnssdServiceUpdateType update, DnssdServiceInfoPtr info)
 {
@@ -66,7 +66,7 @@ void dnssdServiceChangedCallback(const DnssdServiceWatcherPtr serviceWatcher, Dn
 int main()
 {
     HINSTANCE dllHandle = NULL;
-    DnssdPtr dnssdPtr = nullptr;
+    DnssdServiceWatcherPtr dnssdServiceWatcherPtr = nullptr;
 
     //Load the Dnssd dll
 #ifdef USING_APP_MANIFEST
@@ -94,17 +94,22 @@ int main()
     gDnssdInitFunc = reinterpret_cast<DnssdInitializeFunc>(::GetProcAddress(dllHandle, "dnssd_initialize"));
 
     //Get pointer to the DnssdFreeFunc function using GetProcAddress:  
-    gDnssdFreeFunc = reinterpret_cast<DnssdFreeFunc>(::GetProcAddress(dllHandle, "dnssd_free"));
+    gDnssdFreeServiceWatcherFunc = reinterpret_cast<DnssdFreeServiceWatcherFunc>(::GetProcAddress(dllHandle, "dnssd_free_service_watcher"));
 
     //Get pointer to the DnssdGetPortWatcherFunc function using GetProcAddress:  
-    gDnssdGetServiceWatcher = reinterpret_cast<DnssdGetPortWatcherFunc>(::GetProcAddress(dllHandle, "dnssd_get_servicewatcher"));
-
-
+    gDnssdCreateServiceWatcherFunc = reinterpret_cast<DnssdCreateServiceWatcherFunc>(::GetProcAddress(dllHandle, "dnssd_create_service_watcher"));
+    
     // initialize dnssd interface
-    DnssdErrorType result = gDnssdInitFunc(dnssdServiceChangedCallback, &dnssdPtr);
+    DnssdErrorType result = gDnssdInitFunc();
     if(result != DNSSD_NO_ERROR)
     {
-        cout << "Unable to initialize Dnssd" << endl;
+        cout << "Unable to initialize Dnssd SDK" << endl;
+        goto cleanup;
+    }
+
+    result = gDnssdCreateServiceWatcherFunc(dnssdServiceChangedCallback, &dnssdServiceWatcherPtr);
+    {
+        cout << "Unable to initialize Dnssd service watcher" << endl;
         goto cleanup;
     }
 
@@ -113,9 +118,9 @@ cleanup:
     cout << "Press any key to exit..." << endl << endl;
     char c = _getch();
 
-    if(gDnssdFreeFunc && dnssdPtr)
+    if(gDnssdFreeServiceWatcherFunc && dnssdServiceWatcherPtr)
     {
-        gDnssdFreeFunc(dnssdPtr);
+        gDnssdFreeServiceWatcherFunc(dnssdServiceWatcherPtr);
     }
 
     //Free the library:
