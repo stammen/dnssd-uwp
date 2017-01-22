@@ -24,10 +24,13 @@
     <ClInclude Include="dnssd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DnssdImpl.h">
+    <ClInclude Include="DnssdServiceWatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DnssdServiceWatcher.h">
+    <ClInclude Include="DnssdService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DnssdUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,10 +41,13 @@
     <ClCompile Include="dnssd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DnssdImpl.cpp">
+    <ClCompile Include="DnssdServiceWatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DnssdServiceWatcher.cpp">
+    <ClCompile Include="DnssdService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DnssdUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

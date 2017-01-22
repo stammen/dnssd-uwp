@@ -11,7 +11,9 @@
 // ******************************************************************
 
 #include "DnssdServiceWatcher.h"
+#include "DnssdUtils.h"
 #include <algorithm>
+#include <vector>
 #include <collection.h>
 #include <cvt/wstring>
 #include <codecvt>
@@ -30,26 +32,6 @@ using namespace concurrency;
 
 namespace dnssd_uwp
 {
-    Platform::String^ StringToPlatformString(const std::string& s)
-    {
-        std::wstring w(s.begin(), s.end());
-        Platform::String^ p = ref new Platform::String(w.c_str());
-        return p;
-    }
-
-    std::string PlatformStringToString(Platform::String^ s)
-    {
-        std::wstring w(s->Data());
-        std::string result(w.begin(), w.end());
-        return result;
-    }
-
-    std::string PlatformStringToString2(Platform::String^ s)
-    {
-        stdext::cvt::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
-        std::string stringUtf8 = convert.to_bytes(s->Data());
-        return stringUtf8;
-    }
 
     DnssdServiceWatcher::DnssdServiceWatcher(const char* serviceName, DnssdServiceChangedCallback callback)
         : mDnssdServiceChangedCallback(callback)

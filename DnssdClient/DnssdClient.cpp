@@ -31,6 +31,11 @@ CRITICAL_SECTION gCriticalSection;
 DnssdInitializeFunc             gDnssdInitFunc = nullptr;
 DnssdCreateServiceWatcherFunc   gDnssdCreateServiceWatcherFunc = nullptr;
 DnssdFreeServiceWatcherFunc     gDnssdFreeServiceWatcherFunc = nullptr;
+DnssdCreateServiceFunc          gDnssdCreateServiceFunc = nullptr;
+DnssdFreeServiceFunc            gDnssdFreeServiceFunc = nullptr;
+
+static const std::string gServiceName = "_daap._tcp";
+static const std::string gServicePort = "3689";
 
 void dnssdServiceChangedCallback(const DnssdServiceWatcherPtr serviceWatcher, DnssdServiceUpdateType update, DnssdServiceInfoPtr info)
 {
@@ -67,6 +72,7 @@ int main()
 {
     HINSTANCE dllHandle = NULL;
     DnssdServiceWatcherPtr dnssdServiceWatcherPtr = nullptr;
+    DnssdServicePtr dnssdServicePtr = nullptr;
 
     //Load the Dnssd dll
 #ifdef USING_APP_MANIFEST
@@ -93,12 +99,18 @@ int main()
     //Get pointer to the DnssdInitializeFunc function using GetProcAddress:  
     gDnssdInitFunc = reinterpret_cast<DnssdInitializeFunc>(::GetProcAddress(dllHandle, "dnssd_initialize"));
 
-    //Get pointer to the DnssdFreeFunc function using GetProcAddress:  
+    //Get pointer to the DnssdFreeServiceWatcherFunc function using GetProcAddress:  
     gDnssdFreeServiceWatcherFunc = reinterpret_cast<DnssdFreeServiceWatcherFunc>(::GetProcAddress(dllHandle, "dnssd_free_service_watcher"));
 
-    //Get pointer to the DnssdGetPortWatcherFunc function using GetProcAddress:  
+    //Get pointer to the DnssdCreateServiceWatcherFunc function using GetProcAddress:  
     gDnssdCreateServiceWatcherFunc = reinterpret_cast<DnssdCreateServiceWatcherFunc>(::GetProcAddress(dllHandle, "dnssd_create_service_watcher"));
     
+    //Get pointer to the DnssdFreeServiceFunc function using GetProcAddress:  
+    gDnssdFreeServiceFunc = reinterpret_cast<DnssdFreeServiceFunc>(::GetProcAddress(dllHandle, "dnssd_free_service"));
+
+    //Get pointer to the DnssdCreateServiceFunc function using GetProcAddress:  
+    gDnssdCreateServiceFunc = reinterpret_cast<DnssdCreateServiceFunc>(::GetProcAddress(dllHandle, "dnssd_create_service"));
+
     // initialize dnssd interface
     DnssdErrorType result = gDnssdInitFunc();
     if(result != DNSSD_NO_ERROR)
@@ -108,10 +120,18 @@ int main()
     }
 
     // create a dns service watcher
-    result = gDnssdCreateServiceWatcherFunc("_daap._tcp", dnssdServiceChangedCallback, &dnssdServiceWatcherPtr);
+    result = gDnssdCreateServiceWatcherFunc(gServiceName.c_str(), dnssdServiceChangedCallback, &dnssdServiceWatcherPtr);
     if (result != DNSSD_NO_ERROR)
     {
         cout << "Unable to initialize Dnssd service watcher" << endl;
+        goto cleanup;
+    }
+
+    // create a dns service
+    result = gDnssdCreateServiceFunc(gServiceName.c_str(), gServicePort.c_str(), &dnssdServicePtr);
+    if (result != DNSSD_NO_ERROR)
+    {
+        cout << "Unable to initialize Dnssd service" << endl;
         goto cleanup;
     }
 
@@ -119,6 +139,11 @@ cleanup:
     // process until user presses key on keyboard
     cout << "Press any key to exit..." << endl << endl;
     char c = _getch();
+
+    if (gDnssdFreeServiceFunc && dnssdServicePtr)
+    {
+        gDnssdFreeServiceFunc(dnssdServicePtr);
+    }
 
     if(gDnssdFreeServiceWatcherFunc && dnssdServiceWatcherPtr)
     {

@@ -10,42 +10,42 @@
 // THE CODE OR THE USE OR OTHER DEALINGS IN THE CODE.
 // ******************************************************************
 
+#pragma once
+
 #include "dnssd.h"
-#include "DnssdImpl.h"
-#include <ppltasks.h>
-#include <robuffer.h> 
+#include <string>
 
-using namespace dnssd_uwp;
-using namespace Windows::Storage::Streams;
-using namespace std::placeholders;
-using namespace concurrency;
-using namespace Microsoft::WRL;
-
-DnssdService::DnssdService()
-    : mErrorMessage("")
-    , mError(DNSSD_NO_ERROR)
+namespace dnssd_uwp
 {
+    ref class DnssdService sealed
+    {
+    public:
+        virtual ~DnssdService();
 
-}
+    internal:
+        DnssdService(const std::string& name, const std::string& port);
+        DnssdErrorType Start();
+        void Stop();
 
-DnssdService::~DnssdService()
-{
+    private:
+        Platform::String^ mServiceName;
+        Platform::String^ mPort;
+    };
 
-}
+    class DnssdServiceWrapper
+    {
+    public:
+        DnssdServiceWrapper(DnssdService ^ service)
+            : mService(service)
+        {
+        }
 
-void DnssdService::SetError(DnssdErrorType error, const std::string& message)
-{
-    mError = error;
-    mErrorMessage = message;
-}
+        DnssdService^ GetService() {
+            return mService;
+        }
 
-const std::string& DnssdService::GetErrorMessage()
-{
-    return mErrorMessage;
-}
-
-DnssdErrorType DnssdService::GetError()
-{
-    return mError;
-}
+    private:
+        DnssdService^ mService;
+    };
+};
 

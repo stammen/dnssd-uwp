@@ -11,7 +11,7 @@
 // ******************************************************************
 
 #include "dnssd.h"
-#include "DnssdImpl.h"
+#include "DnssdService.h"
 #include "DnssdServiceWatcher.h"
 #include <wrl\wrappers\corewrappers.h>
 
@@ -20,7 +20,7 @@ namespace dnssd_uwp
 {
     static bool mInitialized = false;
 
-    DnssdErrorType dnssd_initialize()
+    DNSSD_API DnssdErrorType dnssd_initialize()
     {
         DnssdErrorType result = DNSSD_NO_ERROR;
         HRESULT hr = S_OK;
@@ -66,12 +66,44 @@ namespace dnssd_uwp
         return result;
     }
 
-    void dnssd_free_service_watcher(DnssdServiceWatcherPtr serviceWatcher)
+    DNSSD_API void dnssd_free_service_watcher(DnssdServiceWatcherPtr serviceWatcher)
     {
         if (serviceWatcher)
         {
             DnssdServiceWatcherWrapper* watcher = (DnssdServiceWatcherWrapper*)serviceWatcher;
             delete watcher;
+        }
+    }
+
+    DNSSD_API DnssdErrorType dnssd_create_service(const char* serviceName, const char* port, DnssdServicePtr *service)
+    {
+        DnssdErrorType result = DNSSD_NO_ERROR;
+
+        *service = nullptr;
+
+        auto s = ref new DnssdService(serviceName, port);
+        result = s->Start();
+
+        if (result != DNSSD_NO_ERROR)
+        {
+            *service = nullptr;
+            s = nullptr;
+        }
+        else
+        {
+            auto wrapper = new DnssdServiceWrapper(s);
+            *service = (DnssdServicePtr)wrapper;
+        }
+
+        return result;
+    }
+
+    DNSSD_API void dnssd_free_service(DnssdServicePtr service)
+    {
+        if (service)
+        {
+            DnssdServiceWrapper* wrapper = (DnssdServiceWrapper*)service;
+            delete wrapper;
         }
     }
 }

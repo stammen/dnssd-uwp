@@ -12,31 +12,18 @@
 
 #pragma once
 
-#include "dnssd.h"
-#include "DnssdServiceWatcher.h"
+#include <vector>
 #include <memory>
 #include <string>
-#include <Windows.h>
+
+#include "dnssd.h"
 
 namespace dnssd_uwp
 {
-    ref class DnssdService abstract
-    {
-    public:
-        virtual ~DnssdService();
-        virtual void ClosePort(void) = 0;
-
-    internal:
-        DnssdService();
-        virtual DnssdErrorType OpenPort(Platform::String^ id) = 0;
-
-        void SetError(DnssdErrorType error, const std::string& message);
-        const std::string& GetErrorMessage();
-        DnssdErrorType GetError();
- 
-    private:
-        std::string mErrorMessage;
-        DnssdErrorType mError;
-    };
+    Platform::String^ StringToPlatformString(const std::string& s);
+    std::string PlatformStringToString(Platform::String^ s);
 };
+
+
+
 

@@ -12,18 +12,14 @@
 
 #pragma once
 
-#include <vector>
-#include <memory>
 #include <string>
 #include <functional>
 #include <map>
-#include <string>
 
 #include "dnssd.h"
 
 namespace dnssd_uwp
 {
-    std::string PlatformStringToString(Platform::String^ s);
     ref class DnssdServiceWatcher;
 
     // C++ dsssd service changed callback

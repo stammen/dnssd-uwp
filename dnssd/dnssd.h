@@ -33,6 +33,7 @@ namespace dnssd_uwp
     };
 
     typedef void* DnssdServiceWatcherPtr;
+    typedef void* DnssdServicePtr;
 
     // dnssd service info
     typedef struct 
@@ -60,6 +61,13 @@ namespace dnssd_uwp
 
     typedef void(__cdecl *DnssdFreeServiceWatcherFunc)(DnssdServiceWatcherPtr serviceWatcher);
     DNSSD_API void __cdecl dnssd_free_service_watcher(DnssdServiceWatcherPtr serviceWatcher);
+
+    // dnssd service create function
+    typedef  DnssdErrorType(__cdecl *DnssdCreateServiceFunc)(const char* serviceName, const char* port, DnssdServicePtr *service);
+    DNSSD_API DnssdErrorType __cdecl dnssd_create_service(const char* serviceName, const char* port, DnssdServicePtr *service);
+
+    typedef void(__cdecl *DnssdFreeServiceFunc)(DnssdServicePtr service);
+    DNSSD_API void __cdecl dnssd_free_service(DnssdServicePtr service);
 
 
 };
