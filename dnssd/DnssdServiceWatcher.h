@@ -17,6 +17,7 @@
 #include <string>
 #include <functional>
 #include <map>
+#include <string>
 
 #include "dnssd.h"
 
@@ -69,7 +70,7 @@ namespace dnssd_uwp
         };
        
         // Constructor needs to be internal as this is an unsealed ref base class
-        DnssdServiceWatcher(DnssdServiceChangedCallback callback = nullptr);
+        DnssdServiceWatcher(const char* serviceType, DnssdServiceChangedCallback callback = nullptr);
 
     private:
         void OnServiceAdded(Windows::Devices::Enumeration::DeviceWatcher^ sender, Windows::Devices::Enumeration::DeviceInformation^ args);
@@ -85,6 +86,8 @@ namespace dnssd_uwp
         DnssdServiceChangedCallback mDnssdServiceChangedCallback;
 
         std::map<Platform::String^, DnssdServiceInstance^> mServices;
+        Platform::String^ mServiceName;
+        bool mRunning;
     };
 
 

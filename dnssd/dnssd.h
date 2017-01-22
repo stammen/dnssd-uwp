@@ -23,10 +23,10 @@ namespace dnssd_uwp
     enum DnssdServiceUpdateType { ServiceAdded, ServiceUpdated, ServiceRemoved };
 
     enum DnssdErrorType {
-        DNSSD_NO_ERROR = 0,                         //no error
-        DNSSD_WINDOWS_RUNTIME_ERROR,                // unable to initialize Windows Runtime
+        DNSSD_NO_ERROR = 0,                         // no error
+        DNSSD_WINDOWS_RUNTIME_INITIALIZATION_ERROR, // unable to initialize Windows Runtime
         DNSSD_WINDOWS_VERSION_ERROR,                // version of Windows does not support Windows::Networking::ServiceDiscovery::Dnssd api
-        DNSSD_PORTWATCHER_INITIALIZATION_ERROR,     // error initializing dnssd service watcher
+        DNSSD_SERVICEWATCHER_INITIALIZATION_ERROR,  // error initializing dnssd service watcher
         DNSSD_INVALID_PARAMETER_ERROR,
         DNSSD_MEMORY_ERROR, 
         DNSSD_UNSPECIFIED_ERROR
@@ -55,8 +55,8 @@ namespace dnssd_uwp
     typedef void(*DnssdServiceChangedCallback) (const DnssdServiceWatcherPtr portWatcher, DnssdServiceUpdateType update, DnssdServiceInfoPtr info);
 
     // dnssd service watcher create function
-    typedef  DnssdErrorType(__cdecl *DnssdCreateServiceWatcherFunc)(DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr *serviceWatcher);
-    DNSSD_API DnssdErrorType __cdecl dnssd_create_service_watcher(DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr * serviceWatcher);
+    typedef  DnssdErrorType(__cdecl *DnssdCreateServiceWatcherFunc)(const char* serviceName, DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr *serviceWatcher);
+    DNSSD_API DnssdErrorType __cdecl dnssd_create_service_watcher(const char* serviceName, DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr * serviceWatcher);
 
     typedef void(__cdecl *DnssdFreeServiceWatcherFunc)(DnssdServiceWatcherPtr serviceWatcher);
     DNSSD_API void __cdecl dnssd_free_service_watcher(DnssdServiceWatcherPtr serviceWatcher);

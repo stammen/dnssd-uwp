@@ -21,34 +21,6 @@ using namespace std::placeholders;
 using namespace concurrency;
 using namespace Microsoft::WRL;
 
-
-/*****************************************************
-    DnssdInPort
-*****************************************************/
-
-Dnssd::Dnssd(DnssdServiceChangedCallback callback)
-{
-    mServiceWatcher = ref new DnssdServiceWatcher(callback);
-    mServiceWatcherWrapper = std::make_shared<DnssdServiceWatcherWrapper>(mServiceWatcher);
-}
-
-DnssdErrorType Dnssd::Initialize()
-{
-    DnssdErrorType result = mServiceWatcher->Initialize();
-    return result;
-}
-
-DnssdServiceWatcher^ Dnssd::GetServiceWatcher()
-{
-    return mServiceWatcher;
-}
-
-DnssdServiceWatcherPtr Dnssd::GetServiceWatcherWrapper()
-{
-    return (DnssdServiceWatcherPtr)mServiceWatcherWrapper.get();
-}
-
-
 DnssdService::DnssdService()
     : mErrorMessage("")
     , mError(DNSSD_NO_ERROR)

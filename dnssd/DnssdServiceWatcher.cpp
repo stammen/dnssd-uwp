@@ -30,6 +30,13 @@ using namespace concurrency;
 
 namespace dnssd_uwp
 {
+    Platform::String^ StringToPlatformString(const std::string& s)
+    {
+        std::wstring w(s.begin(), s.end());
+        Platform::String^ p = ref new Platform::String(w.c_str());
+        return p;
+    }
+
     std::string PlatformStringToString(Platform::String^ s)
     {
         std::wstring w(s->Data());
@@ -44,16 +51,18 @@ namespace dnssd_uwp
         return stringUtf8;
     }
 
-    DnssdServiceWatcher::DnssdServiceWatcher(DnssdServiceChangedCallback callback)
+    DnssdServiceWatcher::DnssdServiceWatcher(const char* serviceName, DnssdServiceChangedCallback callback)
         : mDnssdServiceChangedCallback(callback)
+        , mRunning(false)
     {
- 
+        mServiceName = StringToPlatformString(serviceName);
     }
 
     DnssdServiceWatcher::~DnssdServiceWatcher()
     {
         if (mServiceWatcher)
         {
+            mRunning = false;
             mServiceWatcher->Stop();
             mServiceWatcher = nullptr;
         }
@@ -76,7 +85,7 @@ namespace dnssd_uwp
 
             Platform::String^ aqsQueryString;
             aqsQueryString = L"System.Devices.AepService.ProtocolId:={4526e8c1-8aac-4153-9b16-55e86ada0e54} AND " +
-                "System.Devices.Dnssd.Domain:=\"local\" AND System.Devices.Dnssd.ServiceName:=\"_daap._tcp\"";
+                "System.Devices.Dnssd.Domain:=\"local\" AND System.Devices.Dnssd.ServiceName:=\"" + mServiceName + "\"";
 
             mServiceWatcher = DeviceInformation::CreateWatcher(aqsQueryString, propertyKeys, DeviceInformationKind::AssociationEndpointService);
 
@@ -89,6 +98,7 @@ namespace dnssd_uwp
 
             // start watching for dnssd services
             mServiceWatcher->Start();
+            mRunning = true;
             auto status = mServiceWatcher->Status;
         }));
 
@@ -100,7 +110,7 @@ namespace dnssd_uwp
         }
         catch (Platform::Exception^ ex)
         {
-            return DNSSD_PORTWATCHER_INITIALIZATION_ERROR;
+            return DNSSD_SERVICEWATCHER_INITIALIZATION_ERROR;
         }
     }
 
@@ -198,6 +208,12 @@ namespace dnssd_uwp
 
     void DnssdServiceWatcher::OnServiceEnumerationStopped(Windows::Devices::Enumeration::DeviceWatcher^ sender, Platform::Object^ args)
     {
+        // check if we are shutting down
+        if (!mRunning)
+        {
+            return;
+        }
+
         std::vector<Platform::String^> removedServices;
 
         // iterate through the services list and remove any service that is marked for removal
@@ -232,7 +248,6 @@ namespace dnssd_uwp
         // restart the service scan
         mServiceWatcher->Start();
     }
-
 }
 
 

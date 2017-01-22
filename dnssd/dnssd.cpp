@@ -15,37 +15,41 @@
 #include "DnssdServiceWatcher.h"
 #include <wrl\wrappers\corewrappers.h>
 
+
 namespace dnssd_uwp
 {
+    static bool mInitialized = false;
+
     DnssdErrorType dnssd_initialize()
     {
+        DnssdErrorType result = DNSSD_NO_ERROR;
+        HRESULT hr = S_OK;
+
         // Initialize the Windows Runtime.
-        static Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
-
-        if (!SUCCEEDED(initialize.operator HRESULT()))
+        if (!mInitialized)
         {
-            return DNSSD_WINDOWS_RUNTIME_ERROR;
+            HRESULT hr = ::Windows::Foundation::Initialize(RO_INIT_MULTITHREADED);
+            if (!SUCCEEDED(hr))
+            {
+                result = DNSSD_WINDOWS_RUNTIME_INITIALIZATION_ERROR;
+            }
+            else
+            {
+                mInitialized = true;
+            }
         }
-
-#if 0
-        // Check if Windows 10 dnssd api is supported
-        if (!Windows::Foundation::Metadata::ApiInformation::IsTypePresent("Windows.Networking.ServiceDiscovery"))
-        {
-            return DNSSD_WINDOWS_VERSION_ERROR;
-        }
-#endif
-
-        return DNSSD_NO_ERROR;
+        
+        return result;
     }
 
 
-    DNSSD_API DnssdErrorType dnssd_create_service_watcher(DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr *serviceWatcher)
+    DNSSD_API DnssdErrorType dnssd_create_service_watcher(const char* serviceName, DnssdServiceChangedCallback callback, DnssdServiceWatcherPtr *serviceWatcher)
     {
         DnssdErrorType result = DNSSD_NO_ERROR;
 
         *serviceWatcher = nullptr;
 
-        auto watcher = ref new DnssdServiceWatcher(callback);
+        auto watcher = ref new DnssdServiceWatcher(serviceName, callback);
         result = watcher->Initialize();
 
         if (result != DNSSD_NO_ERROR)
@@ -66,7 +70,8 @@ namespace dnssd_uwp
     {
         if (serviceWatcher)
         {
-            delete serviceWatcher;
+            DnssdServiceWatcherWrapper* watcher = (DnssdServiceWatcherWrapper*)serviceWatcher;
+            delete watcher;
         }
     }
 }

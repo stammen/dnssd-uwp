@@ -107,7 +107,9 @@ int main()
         goto cleanup;
     }
 
-    result = gDnssdCreateServiceWatcherFunc(dnssdServiceChangedCallback, &dnssdServiceWatcherPtr);
+    // create a dns service watcher
+    result = gDnssdCreateServiceWatcherFunc("_daap._tcp", dnssdServiceChangedCallback, &dnssdServiceWatcherPtr);
+    if (result != DNSSD_NO_ERROR)
     {
         cout << "Unable to initialize Dnssd service watcher" << endl;
         goto cleanup;

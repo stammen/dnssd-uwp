@@ -38,22 +38,5 @@ namespace dnssd_uwp
         std::string mErrorMessage;
         DnssdErrorType mError;
     };
-
-
-
-    class Dnssd
-    {
-    public:
-        Dnssd(DnssdServiceChangedCallback callback);
-        DnssdErrorType Initialize();
-
-        DnssdServiceWatcher^ GetServiceWatcher();
-        DnssdServiceWatcherPtr GetServiceWatcherWrapper();
-
-    private:
-
-        DnssdServiceWatcher^ mServiceWatcher;
-        std::shared_ptr<DnssdServiceWatcherWrapper> mServiceWatcherWrapper;
-    };
 };
 
