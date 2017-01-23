@@ -1,28 +1,28 @@
-﻿# WinRTMidi DLL #
+﻿# dnssd DLL #
 
-This GitHub WinRTMidi project wraps the Windows Runtime [Windows::Devices::Midi](https://msdn.microsoft.com/library/windows/apps/windows.devices.midi.aspx) API 
+This GitHub dnssd-uwp project wraps the Windows Runtime [Windows::Networking::ServiceDiscovery::Dnssd](https://msdn.microsoft.com/en-us/library/windows/apps/windows.networking.servicediscovery.dnssd.aspx) API 
 in a Win32 DLL that can be dynamically loaded by a standard Win32 application. If the application is running on a device with Windows 10, the DLL will 
-load and you will be able to use the Windows::Devices::Midi API via a C interface exported by the DLL.
+load and you will be able to use the Windows::Networking::ServiceDiscovery::Dnssd API via a C interface exported by the DLL.
 If your application is running on devices with Windows 7 or Windows 8/8.1, the winrtmidi DLL will not load. Your application will need to test if it is running on Windows 10 before
-attempting to load the DLL (See [Testing for Windows 10](#testing-for-windows-10) below).  The Windows::Devices::Midi API is ony available on devices running Windows 10.
+attempting to load the DLL (See [Testing for Windows 10](#testing-for-windows-10) below).  The Windows::Networking::ServiceDiscovery::Dnssd API is ony available on devices running Windows 10.
 
-This DLL is useful for the scenario where you have an existing Win32 MIDI application and want to use the new Windows::Devices::Midi API. If you are not able to update your application to a 
-Windows 10 UWP app, you can use the winrtmidi DLL to access the Windows::Devices::Midi API when your application  is running on a device with Windows 10. You can use the winrtmidi DLL with
-applications built with Visual Studio 2010-2015. There is no need to rebuild your application with Visual Studio 2015 to access the Windows::Devices::Midi API using the winrtmidi DLL.
+This DLL is useful for the scenario where you have an existing Win32 application and want to use the new Windows::Networking::ServiceDiscovery::Dnssd API. If you are not able to update your application to a 
+Windows 10 UWP app, you can use the dnssd-uwp DLL to access the Windows::Networking::ServiceDiscovery::Dnssd API when your application  is running on a device with Windows 10. You can use the dnssd-uwp DLL with
+applications built with Visual Studio 2010-2015. There is no need to rebuild your application with Visual Studio 2015 to access the Windows::Networking::ServiceDiscovery::DnssdI using the dnssd-uwp DLL.
 
 The recommended steps to use this DLL are as follows:
 
-1. Ship the winrtmidi DLL with your Win32 application but do not link to the DLL.
+1. Ship the dnssd-uwp DLL with your Win32 application but do not link to the DLL.
 1. When your Win32 application runs, check if your application is running on Windows 10 (See [Testing for Windows 10](#testing-for-windows-10) below).
-1. If your application is running on Windows 10, dynamically load the winrtmidi DLL using **LoadLibrary()**.
-	* If your application is not running on Windows 10, continue to use the WinMM MIDI API.
-1. Get pointers to the various winrtmidi functions using **GetProcAddress()**.
-1. Initialize the winrtmidi API using the **winrt_initialize_midi()** function.
+1. If your application is running on Windows 10, dynamically load the dnssd-uwp DLL using **LoadLibrary()**.
+	* If your application is not running on Windows 10, do not attempt to load the dnssd-uwp DLL.
+1. Get pointers to the various dnssd functions using **GetProcAddress()**.
+1. Initialize the dnssd API using the **winrt_initialize_midi()** function.
 1. Obtain a MIDI port using the **winrt_open_midi_in_port()** or **winrt_open_midi_out_port()** functions.
 1. For more information see example code below.
 
 
-The WinRTMid DLL enables the following MIDI functionality from the Windows::Devices::Midi API:
+The dnssd-uwp DLL enables the following MIDI functionality from the Windows::Devices::Midi API:
 
 * Enumerate MIDI ports.
 * Notification when MIDI ports are added or removed.
