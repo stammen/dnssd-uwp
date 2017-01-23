@@ -17,8 +17,9 @@ The recommended steps to use this DLL are as follows:
 1. If your application is running on Windows 10, dynamically load the dnssd-uwp DLL using **LoadLibrary()**.
 	* If your application is not running on Windows 10, do not attempt to load the dnssd-uwp DLL.
 1. Get pointers to the various dnssd functions using **GetProcAddress()**.
-1. Initialize the dnssd API using the **winrt_initialize_midi()** function.
-1. Obtain a MIDI port using the **winrt_open_midi_in_port()** or **winrt_open_midi_out_port()** functions.
+1. Initialize the dnssd API using the **dnssd_initialize()** function.
+1. Create a dnssd service watcher using the **dnssd_create_service_watcher()** function.
+1. Create a dnssd service  using the **dnssd_create_service()** function.
 1. For more information see example code below.
 
 
@@ -43,13 +44,12 @@ running on Windows 10 **before** attempting to load the dnssd-uwp DLL. You will 
 	``` c++
 		#include "dnssd.h"
 	```
-1. Look at the [MidiClient.cpp](https://github.com/stammen/winrtmidi/blob/master/MidiClient/MidiClient.cpp) example for how to:
-	* Load the winrtmidi DLL
-	* Get pointers to the winrtmidi functions
-	* Initialize the winrtmidi api
-	* Enumerate MIDI in and out ports
-	* Open MIDI ports
-	* Send and receive MIDI messages
+1. Look at the [DnssdClient.cpp]https://github.com/stammen/dnssd-uwp/blob/master/DnssdClient/DnssdClient.cpp) example for how to:
+	* Load the dnssd-uwp DLL
+	* Get pointers to the dnssd functions
+	* Initialize the dnssd api
+	* Create a dnssd service watcher
+	* Create a dnssd service
 
 
 #Testing for Windows 10 <a id="testing-for-windows-10"/>#
