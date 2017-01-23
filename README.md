@@ -101,8 +101,8 @@ If you do not check for Windows 10 and attempt to load the winrtmidi DLL on Wind
 
 	![Application Manifest Path](Images/manifest.png "Application Manifest Path")
 	
-1. Use the following function to test for Windows 10 in your application. If the function returns true, it is safe to load the winrtmidi DLL.
-This method will work with Visual Studio 2010-2015. This method is also provided in WinRTMidi\WindowsVersionHelper.h which you can add to your project.
+1. Use the following function to test for Windows 10 in your application. If the function returns true, it is safe to load the dnssd-uwpdn DLL.
+This method will work with Visual Studio 2010-2015. This method is also provided in dnssd\WindowsVersionHelper.h which you can add to your project.
 
 	``` c++
 		bool windows10orGreaterWithManifest()
