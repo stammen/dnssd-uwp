@@ -1,4 +1,4 @@
-﻿# dnssd DLL #
+﻿# dnssd-uwp DLL #
 
 This GitHub dnssd-uwp project wraps the Windows Runtime [Windows::Networking::ServiceDiscovery::Dnssd](https://msdn.microsoft.com/en-us/library/windows/apps/windows.networking.servicediscovery.dnssd.aspx) API 
 in a Win32 DLL that can be dynamically loaded by a standard Win32 application. If the application is running on a device with Windows 10, the DLL will 
@@ -22,49 +22,26 @@ The recommended steps to use this DLL are as follows:
 1. For more information see example code below.
 
 
-The dnssd-uwp DLL enables the following MIDI functionality from the Windows::Devices::Midi API:
+The dnssd-uwp DLL enables the following dnssd functionality from the Windows::Networking::ServiceDiscovery::Dnssd:
 
-* Enumerate MIDI ports.
-* Notification when MIDI ports are added or removed.
-* Create a MIDI in or out port.
-* Send MIDI messages on a MIDI out port.
-* Receive MIDI messages from a MIDI in port.
-* Destroy a MIDI port.
-* Access Bluetooth MIDI ports
-* Multi-client MIDI port support
+* Enumerate dnssd services on a local network.
+* Notification when dnssd services are added or removed.
+* Create and register a dnssd service.
 
 ---
-# Requirements to build the winrtmidi DLL #
+# Requirements to build the dnssd-uwp DLL #
 
 Visual Studio 2015 (Update 3 recommended) with **Universal Windows App Development Tools and Windows 10 Tools and SDKs** [installed](https://msdn.microsoft.com/en-us/library/e2h7fzkw.aspx)
 
-# Adding the winrtmidi DLL to your Win32 Project #
+# Using the dnssd-uwp DLL in your Win32 Project #
 
-Your Win32 application should not statically link to the winrtmidi DLL as it will only load if your application is running on Windows 10. Therefore, you will need to check if your app is 
-running on Windows 10 **before** attempting to load the winrtmidi DLL. You will ship the winrtmidi DLL and dynamically load it when required by your application.
+Your Win32 application should not statically link to the dnssd-uwp DLL as it will only load if your application is running on Windows 10. Therefore, you will need to check if your app is 
+running on Windows 10 **before** attempting to load the dnssd-uwp DLL. You will ship the dnssd-uwp DLL and dynamically load it when required by your application.
 
-In order to make it easy to add the winrtdll to your application, we have provided a prebuilt version of the DLL as a NuGet package. The NuGet package is available at: https://www.nuget.org/packages/winrtmidi/ Please note that this is a native nuget package and is not compatible with C# projects. You will need to manually download the dll from nuget using the download instructions below and incorporate it into your C# project (just like any other native c dll). You will then use pinvoke to call its methods.
-
-
-You can add the winrtmidi NuGet package to your Visual Studio 2010 to 2015 project. Please note that Visual Studio 2010 SP1 is required to correctly support incremental link in debug builds.
-
-## Adding the winrtmidi DLL to your Win32 Project Using NuGet ##
-
-1. If the NuGet package manager is not installed in your version of Visual Studio, install it using the **Tools | Extensions...** menu option.
-1. Right-click on your application project and select **Manage NuGet Packages** from the dropdown menu.
-
-	![Manage NuGet Packages](Images/manage-nuget.png "Manage NuGet Packages")
-
-1. Click on the **Browse** tab, enter **winrtmidi** in the search field, enable the **Include prerelease** option. Click on install.
-
-	![Select winrtmidi NuGet Package](Images/winrtmidi-nuget.png "Select winrtmidi NuGet Package")
-
-1. Your project is now set up with the include paths to the winrtmidi header files. The winrtmidi dll will also be copied automatically to your .exe's output directory.
-
-1. In the source file you want to use winrtmidi functions add the following include:
+1. In the source file you want to use dnssd-uwp functions add the following include:
 
 	``` c++
-		#include "WinRTMidi.h"
+		#include "dnssd.h"
 	```
 1. Look at the [MidiClient.cpp](https://github.com/stammen/winrtmidi/blob/master/MidiClient/MidiClient.cpp) example for how to:
 	* Load the winrtmidi DLL
@@ -73,19 +50,6 @@ You can add the winrtmidi NuGet package to your Visual Studio 2010 to 2015 proje
 	* Enumerate MIDI in and out ports
 	* Open MIDI ports
 	* Send and receive MIDI messages
-
-## Obtaining the Prebuilt winrtmidi DLLs  ##
-
-You can also obtain the prebuilt winrtmidi dlls by directly downloading the winrtmidi NuGet package from nuget.org.
-
-1. Download the nuget package file. You may need to change the version number in the following URL to get the latest version. http://api.nuget.org/packages/winrt.0.0.1.nupkg
-
-1. Change the .nupkg extension to .zip
-
-1. Unzip the file. The winrtmidi DLLs will be in the bin folder of the extracted folder. The winrtmidi header files will be in the Include folder.
-
-
-
 
 
 #Testing for Windows 10 <a id="testing-for-windows-10"/>#
