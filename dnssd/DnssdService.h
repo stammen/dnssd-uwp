@@ -28,8 +28,12 @@ namespace dnssd_uwp
         void Stop();
 
     private:
+        void OnConnect(Windows::Networking::Sockets::StreamSocketListener^ sender, Windows::Networking::Sockets::StreamSocketListenerConnectionReceivedEventArgs ^ args);
         Platform::String^ mServiceName;
         Platform::String^ mPort;
+        Windows::Networking::ServiceDiscovery::Dnssd::DnssdServiceInstance^ mService;
+        Windows::Networking::Sockets::StreamSocketListener^ mSocket;
+        Windows::Foundation::EventRegistrationToken mSocketToken;
     };
 
     class DnssdServiceWrapper

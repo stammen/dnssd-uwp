@@ -159,7 +159,10 @@ namespace dnssd_uwp
         serviceInfo.host = host.c_str();
         serviceInfo.port = port.c_str();
         serviceInfo.id = id.c_str();
+        //serviceInfo.instanceName = instanceName.c_str();
         serviceInfo.instanceName = instanceName.c_str();
+
+        auto foo = info->mId->Data();
 
         if (mDnssdServiceChangedCallback != nullptr)
         {

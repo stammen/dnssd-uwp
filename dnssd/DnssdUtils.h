@@ -22,6 +22,7 @@ namespace dnssd_uwp
 {
     Platform::String^ StringToPlatformString(const std::string& s);
     std::string PlatformStringToString(Platform::String^ s);
+    std::string PlatformStringToString2(Platform::String^ s);
 };
 
 

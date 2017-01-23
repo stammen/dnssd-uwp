@@ -14,8 +14,10 @@
 #include <algorithm>
 #include <cvt/wstring>
 #include <codecvt>
+#include <memory>
 
-
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 namespace dnssd_uwp
 {
@@ -28,9 +30,12 @@ namespace dnssd_uwp
 
     std::string PlatformStringToString(Platform::String^ s)
     {
-        std::wstring w(s->Data());
-        std::string result(w.begin(), w.end());
-        return result;
+        int bufferSize = WideCharToMultiByte(CP_UTF8, 0, s->Data(), -1, nullptr, 0, NULL, NULL);
+        auto utf8 = std::make_unique<char[]>(bufferSize);
+        if (0 == WideCharToMultiByte(CP_UTF8, 0, s->Data(), -1, utf8.get(), bufferSize, NULL, NULL))
+            throw std::exception("Can't convert string to UTF8");
+
+        return std::string(utf8.get());
     }
 
     std::string PlatformStringToString2(Platform::String^ s)
