@@ -28,8 +28,11 @@ namespace dnssd_uwp
         DNSSD_WINDOWS_VERSION_ERROR,                // version of Windows does not support Windows::Networking::ServiceDiscovery::Dnssd api
         DNSSD_SERVICEWATCHER_INITIALIZATION_ERROR,  // error initializing dnssd service watcher
         DNSSD_LOCAL_HOSTNAME_NOT_FOUND_ERROR,       // dns service was not able to find a local hostname
-        DNSSD_SERVICE_ALREADY_EXISTS,               // dns service has already been started
+        DNSSD_SERVICE_ALREADY_EXISTS_ERROR,         // dns service has already been started
         DNSSD_SERVICE_INITIALIZATION_ERROR,         // error starting dnssd service 
+        DNSSD_INVALID_SERVICE_NAME_ERROR,           // Invalid service name during registration
+        DNSSD_SERVICE_SERVER_ERROR,                 // Dnssd server error during registration
+        DNSSD_SERVICE_SECURITY_ERROR,               // Dnssd security error during registration
         DNSSD_INVALID_PARAMETER_ERROR,
         DNSSD_MEMORY_ERROR,
         DNSSD_DLL_MISSING_ERROR,                    // dnssd dll not found

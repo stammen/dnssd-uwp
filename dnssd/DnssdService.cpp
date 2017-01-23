@@ -35,14 +35,13 @@ DnssdService::~DnssdService()
     DnssdService::Stop();
 }
 
-
 DnssdErrorType DnssdService::Start()
 {
     DnssdErrorType result = DNSSD_NO_ERROR;
 
     if (mService != nullptr)
     {
-        return DNSSD_SERVICE_ALREADY_EXISTS;
+        return DNSSD_SERVICE_ALREADY_EXISTS_ERROR;
     }
 
     auto hostNames = NetworkInformation::GetHostNames();
@@ -76,14 +75,37 @@ DnssdErrorType DnssdService::Start()
         create_task(mSocket->BindServiceNameAsync(mPort)).get();
         unsigned short port = static_cast<unsigned short>(_wtoi(mSocket->Information->LocalPort->Data()));
         mService = ref new DnssdServiceInstance(L"dnssd." + mServiceName + L".local", hostName, port);
-        create_task(mService->RegisterStreamSocketListenerAsync(mSocket)).get();
+        return create_task(mService->RegisterStreamSocketListenerAsync(mSocket));
     }));
 
     try
     {
         // wait for dnssd service to start
-        task.get(); // will throw any exceptions from above task
-        return DNSSD_NO_ERROR;
+        DnssdRegistrationResult^ reg = task.get(); // will also rethrow any exceptions from above task
+        auto ip = reg->IPAddress; // this always seems to be NULL
+        auto status = reg->Status;
+        bool hasInstanceChanged = reg->HasInstanceNameChanged;
+
+        if (status != DnssdRegistrationStatus::Success)
+        {
+            switch (status)
+            {
+                case DnssdRegistrationStatus::InvalidServiceName:
+                    result = DNSSD_INVALID_SERVICE_NAME_ERROR;
+                    break;
+                case DnssdRegistrationStatus::SecurityError:
+                    result = DNSSD_SERVICE_SECURITY_ERROR;
+                    break;
+                case DnssdRegistrationStatus::ServerError:
+                    result = DNSSD_SERVICE_SERVER_ERROR;
+                    break;
+                default:
+                    result = DNSSD_SERVICE_INITIALIZATION_ERROR;
+                    break;
+            }
+
+        }
+        return result;
     }
     catch (Platform::Exception^ ex)
     {

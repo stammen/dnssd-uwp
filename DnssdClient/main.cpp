@@ -126,7 +126,7 @@ int main()
         goto cleanup;
     }
 
-#if 0
+#if 1
     result = gDnssdClient->InitializeDnssdService(gServiceName, gServicePort);
     if (result != DNSSD_NO_ERROR)
     {
