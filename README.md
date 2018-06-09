@@ -1,4 +1,6 @@
 ﻿# dnssd-uwp DLL #
+ 
+## This project is no longer being supported. It is sample code only. ##
 
 This GitHub dnssd-uwp project wraps the Windows Runtime [Windows::Networking::ServiceDiscovery::Dnssd](https://msdn.microsoft.com/en-us/library/windows/apps/windows.networking.servicediscovery.dnssd.aspx) API 
 in a Win32 DLL that can be dynamically loaded by a standard Win32 application. If the application is running on a device with Windows 10, the DLL will 
